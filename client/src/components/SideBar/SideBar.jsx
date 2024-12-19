@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartPie, faWallet, faFile } from "@fortawesome/free-solid-svg-icons";
+import { faChartPie, faUsers, faWallet, faFile } from "@fortawesome/free-solid-svg-icons";
 
 function SideBar() {
   const location = useLocation();
@@ -19,13 +19,22 @@ function SideBar() {
           <div className={`text-[22px] ${isActive('/') ? 'text-default' : 'text-white'} group-hover:text-white`}>Dashboard</div>
         </div>
       </Link>
+      <Link to="/customers" className="relative">
+        <div className={`w-full h-[6vh] flex gap-4 text-[20px] items-center ${isActive('/customers') ? 'bg-blue-50' : 'bg-transparent'} hover:bg-blue-300 border-b border-white group`}>
+          <FontAwesomeIcon
+            icon={faUsers}
+            className={`pl-4 text-[25px] ${isActive('/customers') ? 'text-default' : 'text-white'} group-hover:text-white`}
+          />
+          <div className={`text-[22px] ${isActive('/customers') ? 'text-default' : 'text-white'} group-hover:text-white`}>Customers</div>
+        </div>
+      </Link>
       <Link to="/transaction" className="relative">
         <div className={`w-full h-[6vh] flex gap-4 text-[20px] items-center ${isActive('/transaction') ? 'bg-blue-50' : 'bg-transparent'} hover:bg-blue-300 border-b border-white group`}> 
           <FontAwesomeIcon
             icon={faWallet}
             className={`pl-4 text-[25px] ${isActive('/transaction') ? 'text-default' : 'text-white'} group-hover:text-white`}
           />
-          <div className={`text-[22px] ${isActive('/transaction') ? 'text-default' : 'text-white'} group-hover:text-white`}>Transaction</div>
+          <div className={`text-[22px] ${isActive('/transaction') ? 'text-default' : 'text-white'} group-hover:text-white`}>Transactions</div>
         </div>
       </Link>
       <Link to="/invoice" className="relative">
