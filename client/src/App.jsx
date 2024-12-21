@@ -4,6 +4,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import Dashboard from "./Pages/Dashboard/Dashboard";
+import Customers from "./pages/Customers/Customers"
 import Transaction from "./Pages/Transaction/Transaction";
 import Invoice from "./Pages/Invoice/Invoice"
 import Navbar from "./components/Navbar/Navbar";
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path:"/",
         element:<Dashboard />
+      },
+      {
+        path:"/customers",
+        element:<Customers />
       },
       {
         path:"/transaction/",

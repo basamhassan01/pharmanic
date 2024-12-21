@@ -1,6 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 function InvoiceTable() {
+  const [invoices, setInvoices] = useState([])
+  useEffect(() => {
+    axios.get('http://localhost:3001/api/invoices')
+    .then(invoice => setInvoices(invoice.data))
+    .catch(err => console.log(err))
+  }, [])
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString); 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div>
       <table className="w-[100%]">
@@ -20,71 +37,24 @@ function InvoiceTable() {
 
         {/* Table Data */}
         <tbody className="bg-blue-50">
+          {
+          invoices.map(invoice => {
+            const totalPrice = invoice.unitPrice * invoice.quantity;
+            return (
           <tr className="border border-t border-b border-l-0 border-r-0 border-[#0B81C7] border-opacity-10 hover:bg-blue-100">
-            <th className="py-2 px-2 text-md text-left">T001</th>
-            <td className="py-2 px-2 text-sm">2024-09-01</td>
-            <td className="py-2 px-2 text-sm">Alexander John</td>
-            <td className="py-2 px-2 text-sm">Aspirin</td>
-            <td className="py-2 px-2 text-sm">2</td>
-            <td className="py-2 px-2 text-sm">$5.00</td>
-            <td className="py-2 px-2 text-sm">$10.00</td>
+            <th className="py-2 px-2 text-md text-left">{invoice.invoiceId}</th>
+            <td className="py-2 px-2 text-sm">{formatDate(invoice.date)}</td>
+            <td className="py-2 px-2 text-sm">{invoice.customerId ? invoice.customerId.fullName : "N/A"}</td>
+            <td className="py-2 px-2 text-sm">{invoice.medication}</td>
+            <td className="py-2 px-2 text-sm">{invoice.quantity}</td>
+            <td className="py-2 px-2 text-sm">${invoice.unitPrice.toFixed(2)}</td>
+            <td className="py-2 px-2 text-sm">${totalPrice.toFixed(2)}</td>
             <td class="py-2 px-2 flex gap-1">
-                <button class="bg-[#0B81C7] text-sm text-white px-2 py-1 rounded hover:bg-[#0dccd6]">Edit</button>
-                <button class="bg-red-500 text-sm text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
+                <button className="bg-[#0B81C7] text-sm text-white px-2 py-1 rounded hover:bg-[#0dccd6]">Edit</button>
+                <button className="bg-red-500 text-sm text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
             </td>
           </tr>
-          <tr className="border border-t border-b border-l-0 border-r-0 border-[#0B81C7] border-opacity-10 hover:bg-blue-100">
-            <th className="py-2 px-2 text-md text-left">T002</th>
-            <td className="py-2 px-2 text-sm">2024-09-01</td>
-            <td className="py-2 px-2 text-sm">Daniel Joseph</td>
-            <td className="py-2 px-2 text-sm">Ibuprofen</td>
-            <td className="py-2 px-2 text-sm">1</td>
-            <td className="py-2 px-2 text-sm">$5.00</td>
-            <td className="py-2 px-2 text-sm">$5.00</td>
-            <td class="py-2 px-2 flex gap-1">
-                <button class="bg-[#0B81C7] text-sm text-white px-2 py-1 rounded hover:bg-[#0dccd6]">Edit</button>
-                <button class="bg-red-500 text-sm text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-            </td>
-          </tr>
-          <tr className="border border-t border-b border-l-0 border-r-0 border-[#0B81C7] border-opacity-10 hover:bg-blue-100">
-            <th className="py-2 px-2 text-md text-left">T003</th>
-            <td className="py-2 px-2 text-sm">2024-09-01</td>
-            <td className="py-2 px-2 text-sm">Michael Smith</td>
-            <td className="py-2 px-2 text-sm">Amoxicillin</td>
-            <td className="py-2 px-2 text-sm">5</td>
-            <td className="py-2 px-2 text-sm">$5.00</td>
-            <td className="py-2 px-2 text-sm">$25.00</td>
-            <td class="py-2 px-2 flex gap-1">
-                <button class="bg-[#0B81C7] text-sm text-white px-2 py-1 rounded hover:bg-[#0dccd6]">Edit</button>
-                <button class="bg-red-500 text-sm text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-            </td>
-          </tr>
-          <tr className="border border-t border-b border-l-0 border-r-0 border-[#0B81C7] border-opacity-10 hover:bg-blue-100">
-            <th className="py-2 px-2 text-md text-left">T004</th>
-            <td className="py-2 px-2 text-sm">2024-09-01</td>
-            <td className="py-2 px-2 text-sm">Emily Johnson</td>
-            <td className="py-2 px-2 text-sm">Aspirin</td>
-            <td className="py-2 px-2 text-sm">7</td>
-            <td className="py-2 px-2 text-sm">$5.00</td>
-            <td className="py-2 px-2 text-sm">$35.00</td>
-            <td class="py-2 px-2 flex gap-1">
-                <button class="bg-[#0B81C7] text-sm text-white px-2 py-1 rounded hover:bg-[#0dccd6]">Edit</button>
-                <button class="bg-red-500 text-sm text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-            </td>
-          </tr>
-          <tr className="border border-t border-b border-l-0 border-r-0 border-[#0B81C7] border-opacity-10 hover:bg-blue-100">
-            <th className="py-2 px-2 text-md text-left">T005</th>
-            <td className="py-2 px-2 text-sm">2024-09-01</td>
-            <td className="py-2 px-2 text-sm">Thomas John</td>
-            <td className="py-2 px-2 text-sm">Cetirizine</td>
-            <td className="py-2 px-2 text-sm">2</td>
-            <td className="py-2 px-2 text-sm">$5.00</td>
-            <td className="py-2 px-2 text-sm">$10.00</td>
-            <td class="py-2 px-2 flex gap-1">
-                <button class="bg-[#0B81C7] text-sm text-white px-2 py-1 rounded hover:bg-[#0dccd6]">Edit</button>
-                <button class="bg-red-500 text-sm text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
-            </td>
-          </tr>
+          )})}
         </tbody>
       </table>
     </div>
