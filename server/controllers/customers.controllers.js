@@ -37,3 +37,31 @@ export const createCustomer = async (req, res, next) => {
     next(error);
   }
 }
+
+// Endpoint to delete a customer
+export const deleteCustomer = async (req, res, next) => {
+  try {
+    const { customerId } = req.params;
+
+    // Validate that customerId is provided
+    if (!customerId) {
+      return res.status(400).json({ message: "Customer ID is required." });
+    }
+
+    // Find and delete the customer by customerId
+    const deletedCustomer = await Customer.findByIdAndDelete(customerId);
+
+    // If the customer is not found, return a 404 error
+    if (!deletedCustomer) {
+      return res.status(404).json({ message: "Customer not found." });
+    }
+
+    // Return a success response
+    res.status(200).json({
+      message: "Customer deleted successfully.",
+      deletedCustomer,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
