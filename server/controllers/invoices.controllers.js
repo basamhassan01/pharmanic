@@ -55,12 +55,10 @@ export const createInvoice = async (req, res, next) => {
     });
     const savedInvoice = await newInvoice.save();
     res.status(201).json(savedInvoice);
-
   } catch (error) {
     next(error);
   }
 };
-
 
 // Endpoint to approve an invoice
 export const approveInvoice = async (req, res, next) => {
@@ -87,17 +85,16 @@ export const approveInvoice = async (req, res, next) => {
     // approve the invoice
     invoice.approved = true;
     await invoice.save();
-    
+
     // Return success response with a message and approval status
     res.status(200).json({
       message: "Invoice approved successfully",
       isApproved: invoice.approved,
     });
-}
-catch (error){
-  next(error);
-}
-} 
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Endpoint to edit an invoice
 export const editInvoice = async (req, res, next) => {
@@ -126,15 +123,12 @@ export const editInvoice = async (req, res, next) => {
       message: "Invoice updated successfully.",
       updatedInvoice,
     });
-    
   } catch (error) {
     next(error);
-    
   }
-  
-  }
+};
 
-  // Endpoint to delete an invoice
+// Endpoint to delete an invoice
 export const deleteInvoice = async (req, res, next) => {
   try {
     const { invoiceId } = req.params;
@@ -157,6 +151,42 @@ export const deleteInvoice = async (req, res, next) => {
       message: "Invoice deleted successfully.",
       deletedInvoice,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Updated searchInvoices Controller
+export const searchInvoices = async (req, res, next) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: "Query is required." });
+    }
+
+    // Search invoices by invoiceId
+    const byInvoiceId = await Invoice.find({ invoiceId: query }).populate("customerId");
+
+    // Search invoices by customer fullName
+    const byCustomerName = await Invoice.find({})
+      .populate({
+        path: "customerId",
+        match: { fullName: { $regex: query, $options: "i" } }, // Case-insensitive match
+      })
+      .then((results) => results.filter((invoice) => invoice.customerId !== null)); // Remove unmatched
+
+    // Combine the results and remove duplicates
+    const combinedResults = [...byInvoiceId, ...byCustomerName];
+    const uniqueResults = combinedResults.filter(
+      (item, index, self) =>
+        index === self.findIndex((i) => i._id.toString() === item._id.toString())
+    );
+
+    if (uniqueResults.length === 0) {
+      return res.status(404).json({ message: "No invoices found." });
+    }
+
+    res.status(200).json(uniqueResults);
   } catch (error) {
     next(error);
   }

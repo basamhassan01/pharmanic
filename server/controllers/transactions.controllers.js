@@ -101,3 +101,41 @@ export const deleteTransaction = async (req, res, next) => {
     next(error);
   }
 };
+
+
+// Search transactions by transactionId or customer name
+export const searchTransactions = async (req, res, next) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ message: "Query is required." });
+    }
+
+    // Search transactions by transactionId
+    const byTransactionId = await Transaction.find({ transactionId: query }).populate("customerId");
+
+    // Search transactions by customer name
+    const byCustomerName = await Transaction.find({})
+      .populate({
+        path: "customerId",
+        match: { fullName: { $regex: query, $options: "i" } }, // Case-insensitive match
+      })
+      .then((results) => results.filter((transaction) => transaction.customerId !== null)); // Remove unmatched
+
+    // Combine the results and remove duplicates
+    const combinedResults = [...byTransactionId, ...byCustomerName];
+    const uniqueResults = combinedResults.filter(
+      (item, index, self) =>
+        index === self.findIndex((i) => i._id.toString() === item._id.toString())
+    );
+
+    if (uniqueResults.length === 0) {
+      return res.status(404).json({ message: "No transactions found." });
+    }
+
+    res.status(200).json(uniqueResults);
+  } catch (error) {
+    next(error);
+  }
+};
