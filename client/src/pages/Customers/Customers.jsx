@@ -1,4 +1,3 @@
-import React from "react";
 import CustomersTable from "../../components/Tables/CustomersTable.jsx";
 
 function Customers() {
