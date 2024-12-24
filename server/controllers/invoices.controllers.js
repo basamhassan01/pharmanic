@@ -1,3 +1,8 @@
+import PDFDocument from "pdfkit";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+
 import Invoice from "../models/invoices.model.js";
 import Customer from "../models/customers.model.js";
 import Transaction from "../models/transactions.model.js";
@@ -165,7 +170,9 @@ export const searchInvoices = async (req, res, next) => {
     }
 
     // Search invoices by invoiceId
-    const byInvoiceId = await Invoice.find({ invoiceId: query }).populate("customerId");
+    const byInvoiceId = await Invoice.find({ invoiceId: query }).populate(
+      "customerId"
+    );
 
     // Search invoices by customer fullName
     const byCustomerName = await Invoice.find({})
@@ -173,13 +180,16 @@ export const searchInvoices = async (req, res, next) => {
         path: "customerId",
         match: { fullName: { $regex: query, $options: "i" } }, // Case-insensitive match
       })
-      .then((results) => results.filter((invoice) => invoice.customerId !== null)); // Remove unmatched
+      .then((results) =>
+        results.filter((invoice) => invoice.customerId !== null)
+      ); // Remove unmatched
 
     // Combine the results and remove duplicates
     const combinedResults = [...byInvoiceId, ...byCustomerName];
     const uniqueResults = combinedResults.filter(
       (item, index, self) =>
-        index === self.findIndex((i) => i._id.toString() === item._id.toString())
+        index ===
+        self.findIndex((i) => i._id.toString() === item._id.toString())
     );
 
     if (uniqueResults.length === 0) {
@@ -193,6 +203,84 @@ export const searchInvoices = async (req, res, next) => {
 };
 
 
-// Endpoint to download an invoice
+// Convert import.meta.url to __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Endpoint to download a single invoice
+export const downloadInvoicePdf = async (req, res, next) => {
+  try {
+    const { invoiceId } = req.params;
 
+    // fetch invoice data from the db
+    const invoice = await Invoice.findOne({ invoiceId }).populate("customerId");
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found." });
+    }
+
+    // Create a PDF invoice using pdfKit
+    const doc = new PDFDocument();
+
+    // Set up response headers to indicate PDF content
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=invoice-${invoiceId}.pdf`
+    );
+
+    // Pipe the document to the response (sends the PDF to the client)
+    doc.pipe(res);
+
+    try {
+      // Add a logo image at the top center
+      const logoPath = path.join(__dirname, '../../client/public/images/logos/Pharmanic_Logo.png');
+      
+      // Check if the file exists
+      if (fs.existsSync(logoPath)) {
+        const imageWidth = 150;
+        const pageWidth = doc.page.width;
+        const x = (pageWidth - imageWidth) / 2;
+        const y = 30; // Adjust margin as needed
+  
+        doc.image(logoPath, x, y, {
+          fit: [imageWidth, imageWidth],
+          align: 'center',
+          valign: 'top'
+        });
+      } else {
+        console.error('Logo image not found at path:', logoPath);
+        doc.text('Logo image not found', {
+          align: 'center'
+        });
+      }
+    } catch (error) {
+      console.error('Error loading logo image:', error);
+      doc.text('Error loading logo image', {
+        align: 'center'
+      });
+    }
+
+    // Add content to the PDF document
+    doc.fontSize(20).text("Invoice", { align: "center" });
+    doc.fontSize(12).moveDown(2);
+    doc.text(`Invoice ID: ${invoice.invoiceId}`);
+    doc.fontSize(12).moveDown(1);
+    doc.text(`Date: ${invoice.date}`);
+    doc.fontSize(12).moveDown(1);
+    doc.text(`Customer: ${invoice.customerId.fullName}`);
+    doc.fontSize(12).moveDown(1);
+    doc.text(`Medication: ${invoice.medication}`);
+    doc.fontSize(12).moveDown(1);
+    doc.text(`Quantity: ${invoice.quantity}`);
+    doc.fontSize(12).moveDown(1);
+    doc.text(`Unit Price: $${invoice.unitPrice}`);
+    doc.fontSize(12).moveDown(1);
+    doc.text(`Total: $${invoice.totalPrice}`);
+    doc.fontSize(12).moveDown(1);
+
+    // Finalize the document (end the PDF)
+    doc.end();
+  } catch (error) {
+    next(error);
+  }
+};
