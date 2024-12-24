@@ -193,3 +193,6 @@ export const searchInvoices = async (req, res, next) => {
 };
 
 
+// Endpoint to download an invoice
+
+
