@@ -1,6 +1,19 @@
-import React from 'react'
+import { useState, useEffect } from 'react';
 
 function InvoiceModal({ isOpen, onClose }) {
+  const [invoiceId, setInvoiceId] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setInvoiceId(generateInvoiceId());
+    }
+  }, [isOpen]);
+
+  const generateInvoiceId = () => {
+    const randomNumber = Math.floor(100 + Math.random() * 900); // Generates a number between 100 and 999
+    return `T${randomNumber}`;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -10,7 +23,12 @@ function InvoiceModal({ isOpen, onClose }) {
         <form>
           <div className="mb-4">
             <label className="block">Invoice ID</label>
-            <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
+            <input
+              type="text"
+              value={invoiceId}
+              readOnly
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
           </div>
           <div className="mb-4">
             <label className="block">Date</label>
@@ -32,22 +50,18 @@ function InvoiceModal({ isOpen, onClose }) {
             <label className="block">Unit Price</label>
             <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
           </div>
-          <div className="mb-4">
-            <label className="block">Total Price</label>
-            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
-          </div>
           <div className="flex justify-end">
-            <button type="button" className="bg-gray-300 hover:bg-gray-200 px-4 py-2 rounded mr-2" onClick={onClose}>
+            <button type="button" onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded mr-2">
               Cancel
             </button>
-            <button type="submit" className="bg-[#0B81C7] hover:bg-[#0dccd6] text-white px-4 py-2 rounded">
-              Create Invoice
+            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+              Save
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-export default InvoiceModal
+export default InvoiceModal;

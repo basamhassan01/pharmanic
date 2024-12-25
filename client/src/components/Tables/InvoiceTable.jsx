@@ -3,6 +3,10 @@ import axios from "axios";
 import { ClipLoader } from "react-spinners";
 import { FaEdit, FaTrash, FaCheck, FaFileDownload } from "react-icons/fa";
 
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import './confirmAlertStyles.css'; // Adjust the path as needed
+
 function InvoiceTable() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false); // Overall loading state
@@ -26,52 +30,94 @@ function InvoiceTable() {
     });
   };
 
-  const handleApprove = async (invoiceId) => {
-    setLoading(invoiceId);
-    try {
-      const response = await axios.patch(
-        `http://localhost:3001/api/invoices/${invoiceId}`
-      );
+  const handleDownloadInvoice = async (invoiceId) => {
+    confirmAlert({
+      title: 'Confirm to download',
+      message: 'Would you like to download the invoice as a PDF?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            setDownloading(invoiceId);
+            try {
+              const response = await axios.get(
+                `http://localhost:3001/api/invoices/${invoiceId}/download`,
+                { responseType: 'blob' } // Ensure we receive a binary blob
+              );
 
-      setInvoices((prevInvoices) => {
-        return prevInvoices.map((invoice) => {
-          if (invoice.invoiceId === invoiceId) {
-            return { ...invoice, approved: response.data.isApproved };
+              const url = window.URL.createObjectURL(new Blob([response.data]));
+              const link = document.createElement('a');
+              link.href = url;
+              link.setAttribute('download', `invoice-${invoiceId}.pdf`);
+              document.body.appendChild(link);
+              link.click();
+              link.parentNode.removeChild(link);
+            } catch (error) {
+              console.log(error);
+              alert('Failed to download invoice');
+            } finally {
+              setDownloading(null);
+            }
           }
-          return invoice;
-        });
-      });
-
-      alert(response.data.message);
-    } catch (error) {
-      console.log(error);
-      alert("Failed to approve invoice");
-    } finally {
-      setLoading(null);
-    }
+        },
+        {
+          label: 'No',
+          onClick: () => {}
+        }
+      ]
+    });
   };
 
-  const handleDownloadInvoice = async (invoiceId) => {
-    setDownloading(invoiceId);
-    try {
-      const response = await axios.get(
-        `http://localhost:3001/api/invoices/${invoiceId}/download`,
-        { responseType: "blob" } // Ensure we receive a binary blob
-      );
+  const handleDeleteInvoice = async (invoiceId) => {
+    confirmAlert({
+      title: 'Confirm to delete',
+      message: 'Are you sure you want to delete this invoice?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            try {
+              await axios.delete(`http://localhost:3001/api/invoices/${invoiceId}`);
+              setInvoices(invoices.filter(invoice => invoice.invoiceId !== invoiceId));
+            } catch (error) {
+              console.log(error);
+              alert('Failed to delete invoice');
+            }
+          }
+        },
+        {
+          label: 'No',
+          onClick: () => {}
+        }
+      ]
+    });
+  };
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `invoice-${invoiceId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-    } catch (error) {
-      console.log(error);
-      alert("Failed to download invoice");
-    } finally {
-      setDownloading(null);
-    }
+  const handleApproveInvoice = async (invoiceId) => {
+    confirmAlert({
+      title: 'Confirm to approve',
+      message: 'Are you sure you want to approve this invoice?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            try {
+              await axios.patch(`http://localhost:3001/api/invoices/${invoiceId}/approve`);
+              setInvoices(invoices.map(invoice => 
+                invoice.invoiceId === invoiceId ? { ...invoice, approved: true } : invoice
+              ));
+            } catch (error) {
+              console.log(error);
+              alert('Failed to approve invoice');
+            }
+          }
+        },
+        {
+          label: 'No',
+          onClick: () => {}
+        }
+      ]
+    });
   };
 
   return (
@@ -99,10 +145,12 @@ function InvoiceTable() {
             invoices.map((invoice) => (
               <tr
                 className="border-b border-gray-200 hover:bg-gray-100"
-                key={invoice._id}
+                key={invoice._id} 
               >
                 <td className="py-2 px-2 text-sm">{invoice.invoiceId}</td>
-                <td className="py-2 px-2 text-sm">{formatDate(invoice.date)}</td>
+                <td className="py-2 px-2 text-sm">
+                  {formatDate(invoice.date)}
+                </td>
                 <td className="py-2 px-2 text-sm">
                   {invoice.customerId ? invoice.customerId.fullName : "N/A"}
                 </td>
@@ -121,11 +169,12 @@ function InvoiceTable() {
                   <button
                     className="text-red-500 hover:text-red-600"
                     title="Delete"
+                    onClick={() => handleDeleteInvoice(invoice.invoiceId)}
                   >
                     <FaTrash />
                   </button>
                   <button
-                    onClick={() => handleApprove(invoice.invoiceId)}
+                    onClick={() => handleApproveInvoice(invoice.invoiceId)}
                     disabled={loading === invoice.invoiceId || invoice.approved}
                     className={`${
                       loading === invoice.invoiceId
