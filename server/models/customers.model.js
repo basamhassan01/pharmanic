@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const customerSchema = new mongoose.Schema(
   {
@@ -15,10 +15,14 @@ const customerSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    phoneNumber: { 
+      type: String, 
+      required: true, 
+    },
   },
   { timestamps: true }
 );
 
-const Customer = mongoose.model('Customer', customerSchema);
+const Customer = mongoose.model("Customer", customerSchema);
 
 export default Customer;

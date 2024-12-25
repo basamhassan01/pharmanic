@@ -12,9 +12,9 @@ export const getCustomers = async (req, res, next) => {
 // create a new customer
 export const createCustomer = async (req, res, next) => {
   try {
-    const { fullName, age, email } = req.body;
+    const { fullName, age, email, phoneNumber } = req.body;
     //validate the required fields
-    if (!fullName || !age || !email) {
+    if (!fullName || !age || !email || !phoneNumber) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
@@ -29,6 +29,7 @@ export const createCustomer = async (req, res, next) => {
       fullName,
       age,
       email,
+      phoneNumber,
     });
     const savedCustomer = await newCustomer.save();
     res.status(201).json(savedCustomer);

@@ -28,6 +28,7 @@ function CustomersTable() {
             <th className="py-3 px-2 text-md text-left">Full Name</th>
             <th className="py-3 px-2 text-md text-left">Email</th>
             <th className="py-3 px-2 text-md text-left">Age</th>
+            <th className="py-3 px-2 text-md text-left">Phone Number</th>
           </tr>
         </thead>
 
@@ -48,6 +49,7 @@ function CustomersTable() {
                 <td className="py-2 px-2 text-sm">{customer.fullName}</td>
                 <td className="py-2 px-2 text-sm">{customer.email}</td>
                 <td className="py-2 px-2 text-sm">{customer.age}</td>
+                <td className="py-2 px-2 text-sm">{customer.phoneNumber}</td>
               </tr>
             ))
           )}
