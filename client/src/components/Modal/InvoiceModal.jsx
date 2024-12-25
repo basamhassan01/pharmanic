@@ -31,6 +31,11 @@ function InvoiceModal({ isOpen, onClose }) {
             />
           </div>
           <div className="mb-4">
+            <label className="block">Phone Number</label>
+            <input type="tel" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
+          </div>
+          
+          <div className="mb-4">
             <label className="block">Date</label>
             <input type="date" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
           </div>

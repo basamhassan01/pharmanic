@@ -19,6 +19,10 @@ const invoiceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phoneNumber: { 
+      type: String, 
+      required: true, 
+    },
     quantity: {
       type: Number,
       required: true,

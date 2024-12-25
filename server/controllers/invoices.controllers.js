@@ -25,6 +25,7 @@ export const createInvoice = async (req, res, next) => {
       date,
       customerId,
       medication,
+      phoneNumber,
       quantity,
       unitPrice,
       totalPrice,
@@ -35,6 +36,7 @@ export const createInvoice = async (req, res, next) => {
       !date ||
       !customerId ||
       !medication ||
+      !phoneNumber ||
       !quantity ||
       !unitPrice ||
       !totalPrice

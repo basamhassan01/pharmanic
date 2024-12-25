@@ -128,6 +128,7 @@ function InvoiceTable() {
             <th className="py-3 px-2 text-md text-left">Invoice ID</th>
             <th className="py-3 px-2 text-md text-left">Date</th>
             <th className="py-3 px-2 text-md text-left">Customer Name</th>
+            <th className="py-3 px-2 text-md text-left">Phone Number</th>
             <th className="py-3 px-2 text-md text-left">Medication</th>
             <th className="py-3 px-2 text-md text-left">Quantity</th>
             <th className="py-3 px-2 text-md text-left">Total Price</th>
@@ -154,6 +155,7 @@ function InvoiceTable() {
                 <td className="py-2 px-2 text-sm">
                   {invoice.customerId ? invoice.customerId.fullName : "N/A"}
                 </td>
+                <td className="py-2 px-2 text-sm">{invoice.phoneNumber}</td>
                 <td className="py-2 px-2 text-sm">{invoice.medication}</td>
                 <td className="py-2 px-2 text-sm">{invoice.quantity}</td>
                 <td className="py-2 px-2 text-sm">
