@@ -1,17 +1,51 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 function InvoiceModal({ isOpen, onClose }) {
   const [invoiceId, setInvoiceId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
       setInvoiceId(generateInvoiceId());
+      fetchCustomers();
     }
   }, [isOpen]);
 
   const generateInvoiceId = () => {
     const randomNumber = Math.floor(100 + Math.random() * 900); // Generates a number between 100 and 999
     return `T${randomNumber}`;
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/customers');
+      setCustomers(response.data);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
+
+  const handlePhoneNumberChange = (e) => {
+    const value = e.target.value;
+    setPhoneNumber(value);
+    if (value) {
+      const filtered = customers.filter((customer) =>
+        customer.phoneNumber.includes(value)
+      );
+      setFilteredCustomers(filtered);
+    } else {
+      setFilteredCustomers([]);
+    }
+  };
+
+  const handleCustomerSelect = (customer) => {
+    setPhoneNumber(customer.phoneNumber);
+    setCustomerName(customer.fullName);
+    setFilteredCustomers([]);
   };
 
   if (!isOpen) return null;
@@ -30,16 +64,37 @@ function InvoiceModal({ isOpen, onClose }) {
               className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
             />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <label className="block">Phone Number</label>
-            <input type="tel" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={handlePhoneNumberChange}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
+            {filteredCustomers.length > 0 && (
+              <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
+                {filteredCustomers.map((customer) => (
+                  <li
+                    key={customer._id}
+                    className="p-2 cursor-pointer hover:bg-gray-200"
+                    onClick={() => handleCustomerSelect(customer)}
+                  >
+                    {customer.phoneNumber}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-
           <div className="mb-4">
             <label className="block">Customer Name</label>
-            <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
+            <input
+              type="text"
+              value={customerName}
+              readOnly
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
           </div>
-          
           <div className="mb-4">
             <label className="block">Medication</label>
             <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
