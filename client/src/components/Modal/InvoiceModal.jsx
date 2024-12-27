@@ -34,15 +34,12 @@ function InvoiceModal({ isOpen, onClose }) {
             <label className="block">Phone Number</label>
             <input type="tel" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
           </div>
-          
-          <div className="mb-4">
-            <label className="block">Date</label>
-            <input type="date" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
-          </div>
+
           <div className="mb-4">
             <label className="block">Customer Name</label>
             <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
           </div>
+          
           <div className="mb-4">
             <label className="block">Medication</label>
             <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
@@ -54,6 +51,10 @@ function InvoiceModal({ isOpen, onClose }) {
           <div className="mb-4">
             <label className="block">Unit Price</label>
             <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
+          </div>
+          <div className="mb-4">
+            <label className="block">Date</label>
+            <input type="date" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" />
           </div>
           <div className="flex justify-end">
             <button type="button" onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded mr-2">
