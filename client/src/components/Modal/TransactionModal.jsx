@@ -1,55 +1,42 @@
 import { useState, useEffect } from 'react';
-import axios from "axios";
+import axios from 'axios'
 
-function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
-  const [invoiceId, setInvoiceId] = useState('');
+function TransactionModal({ isOpen, onClose, transactionToEdit }) {
+  const [transactionId, setTransactionId] = useState('');
   const [date, setDate] = useState('');
   const [customerId, setCustomerId] = useState('');
   const [medication, setMedication] = useState('');
-  const [quantity, setQuantity] = useState(0);
-  const [unitPrice, setUnitPrice] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0); 
-  const [approved, setApproved] = useState(false);
+  const [quantity, setQuantity] = useState('');
+  const [totalPrice, setTotalPrice] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (invoiceToEdit) {
+    if (transactionToEdit) {
       setIsEditing(true);
-      setInvoiceId(invoiceToEdit.invoiceId);
-      setDate(invoiceToEdit.date);
-      setCustomerId(invoiceToEdit.customerId);
-      setMedication(invoiceToEdit.medication);
-      setQuantity(invoiceToEdit.quantity);
-      setUnitPrice(invoiceToEdit.unitPrice);
-      setTotalPrice(invoiceToEdit.totalPrice); 
-      setApproved(invoiceToEdit.approved || false); 
+      setDate(transactionToEdit.date);
+      setCustomerId(transactionToEdit.customerId);
+      setMedication(transactionToEdit.medication);
+      setQuantity(transactionToEdit.quantity);
+      setTotalPrice(transactionToEdit.totalPrice);
     } else {
       setIsEditing(false);
-      setInvoiceId(generateInvoiceId());
       setDate('');
       setCustomerId('');
       setMedication('');
-      setQuantity(0);
-      setUnitPrice(0);
-      setTotalPrice(0); 
-      setApproved(false);
+      setQuantity('');
+      setTotalPrice('');
     }
-  }, [invoiceToEdit]);
+  }, [transactionToEdit]);
 
   useEffect(() => {
     if (isOpen) {
-      setInvoiceId(generateInvoiceId());
+      setTransactionId(generateTransactionId());
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    // Calculate totalPrice dynamically when quantity or unitPrice changes
-    setTotalPrice(quantity * unitPrice);
-  }, [quantity, unitPrice]);
-
-  const generateInvoiceId = () => {
+  const generateTransactionId = () => {
     const randomNumber = Math.floor(100 + Math.random() * 900); // Generates a number between 100 and 999
     return `T${randomNumber}`;
   };
@@ -59,7 +46,7 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
     e.preventDefault();
 
     // Validate the form fields
-    if (!invoiceId || !date || !customerId || !medication || isNaN(quantity) || isNaN(unitPrice)) {
+    if (!transactionId || !date || !customerId || !medication || !quantity || !totalPrice) {
       setErrorMessage('All fields are required.');
       return;
     }
@@ -68,16 +55,14 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
     try {
       let response;
       if (isEditing) {
-        // For Updating Existing Invoice
-        const response = await axios.put(`http://localhost:3001/api/invoices/${invoiceToEdit.invoiceId}`, {
-          invoiceId,
+        // For Updating Existing Customer Details
+        const response = await axios.put(`http://localhost:3001/api/transactions/${transactionToEdit.transactionId}`, {
+          transactionId,
           date,
           customerId,
           medication,
           quantity,
-          unitPrice,
-          totalPrice, 
-          approved,
+          totalPrice,
         });
 
         if (response.status === 200) {
@@ -85,16 +70,14 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
           window.location.reload(); 
         }
       } else {
-        // For Creating New Invoices
-        const response = await axios.post('http://localhost:3001/api/invoices', {
-          invoiceId,
+        // For Creating New Customer Details
+        const response = await axios.post('http://localhost:3001/api/transactions', {
+          transactionId,
           date,
           customerId,
           medication,
           quantity,
-          unitPrice,
-          totalPrice, 
-          approved,
+          totalPrice,
         });
 
         if (response.status === 201) {
@@ -103,7 +86,7 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
         }
       }
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Error saving Invoice');
+      setErrorMessage(error.response?.data?.message || 'Error saving transaction');
     } finally {
       setIsLoading(false);
     }  
@@ -114,13 +97,13 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-5 rounded shadow-md w-1/3">
-        <h2 className="text-lg font-bold mb-4">{isEditing ? 'Edit Invoice' : 'New Invoice'}</h2>
+        <h2 className="text-lg font-bold mb-4">{isEditing ? 'Edit transaction' : 'New transaction'}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block">Invoice ID</label>
+            <label className="block">Transaction ID</label>
             <input
               type="text"
-              value={invoiceId}
+              value={transactionId}
               readOnly
               className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
             />
@@ -142,16 +125,8 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
             <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={quantity} onChange={(e) => setQuantity(e.target.value)} disabled={isLoading} />
           </div>
           <div className="mb-4">
-            <label className="block">Unit Price</label>
-            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} disabled={isLoading} />
-          </div>
-          <div className="mb-4">
             <label className="block">Total Price</label>
-            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={totalPrice} readOnly disabled={isLoading} />
-          </div>
-          <div className="mb-4 flex justify-between">
-            <label className="block">Approved</label>
-            <input type="checkbox" checked={approved} onChange={() => setApproved(!approved)} disabled={isLoading} />
+            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={totalPrice} onChange={(e) => setTotalPrice(e.target.value)} disabled={isLoading} />
           </div>
 
           {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
@@ -176,4 +151,4 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
   );
 }
 
-export default InvoiceModal;
+export default TransactionModal;

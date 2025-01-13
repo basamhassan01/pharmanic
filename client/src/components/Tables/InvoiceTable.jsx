@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ClipLoader } from "react-spinners";
-import { FaEdit, FaTrash, FaCheck, FaFileDownload } from "react-icons/fa";
+import { FaEdit, FaTrash, FaCheck, FaTimes, FaFileDownload } from "react-icons/fa";
+import InvoiceModal from "../Modal/InvoiceModal";
 
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -11,6 +12,8 @@ function InvoiceTable() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false); // Overall loading state
   const [downloading, setDownloading] = useState(false); // State for download button
+  const [isModalOpen, setIsModalOpen] = useState(false);  
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {
     setLoading(true); // Start loading
@@ -120,11 +123,21 @@ function InvoiceTable() {
     });
   };
 
+  const handleEditInvoice = (invoice) => {
+    setSelectedInvoice(invoice);  
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);  
+    setSelectedInvoice(null);  
+  };
+
   return (
     <div>
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-200">
+          <tr className="border border-t border-b border-l-0 border-r-0 border-[#0B81C7] border-opacity-30">
             <th className="py-3 px-2 text-md text-left">Invoice ID</th>
             <th className="py-3 px-2 text-md text-left">Date</th>
             <th className="py-3 px-2 text-md text-left">Customer Name</th>
@@ -134,7 +147,7 @@ function InvoiceTable() {
             <th className="py-3 px-2 text-md text-left">Actions</th>
           </tr>
         </thead>
-        <tbody className="bg-gray-50">
+        <tbody className="bg-blue-50">
           {loading ? (
             <tr>
               <td colSpan="7" className="py-4 text-center">
@@ -144,7 +157,7 @@ function InvoiceTable() {
           ) : (
             invoices.map((invoice) => (
               <tr
-                className="border-b border-gray-200 hover:bg-gray-100"
+                className="border-b border-[#0B81C7] border-opacity-10 hover:bg-blue-100"
                 key={invoice._id} 
               >
                 <td className="py-2 px-2 text-sm">{invoice.invoiceId}</td>
@@ -163,6 +176,7 @@ function InvoiceTable() {
                   <button
                     className="text-blue-500 hover:text-blue-600"
                     title="Edit"
+                    onClick={() => handleEditInvoice(invoice)} 
                   >
                     <FaEdit />
                   </button>
@@ -186,9 +200,9 @@ function InvoiceTable() {
                     {loading === invoice.invoiceId ? (
                       <ClipLoader size={16} color={"#0B81C7"} loading={true} />
                     ) : invoice.approved ? (
-                      <FaCheck />
+                      <FaCheck className="text-green-500" />
                     ) : (
-                      <FaCheck />
+                      <FaTimes className="text-red-500" />
                     )}
                   </button>
                   <button
@@ -212,6 +226,7 @@ function InvoiceTable() {
           )}
         </tbody>
       </table>
+      <InvoiceModal isOpen={isModalOpen} onClose={handleCloseModal} invoiceToEdit={selectedInvoice} />
     </div>
   );
 }

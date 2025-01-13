@@ -6,7 +6,7 @@ import { PieGraph } from '../../components/Charts/PieChart.jsx';
 
 function dashboard() {
   return (
-    <div className='h-[100%] pt-2 p-5 bg-blue-50'>
+    <div className='h-[85vh] max-h-full pt-2 p-5 bg-blue-50'>
       
       {/* Title */}
       <div className='pb-5 text-[42px] font-bold text-[#0dccd6]'>Overview</div>
