@@ -38,6 +38,39 @@ export const createCustomer = async (req, res, next) => {
   }
 }
 
+// PUT endpoint to update a customer
+export const updateCustomer = async (req, res, next) => {
+  try {
+    const { customerId } = req.params;
+    const { fullName, age, email } = req.body;
+
+    // Validate that customerId is provided
+    if (!customerId) {
+      return res.status(400).json({ message: "Customer ID is required." });
+    }
+
+    // Check if the customer exists
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found." });
+    }
+
+    // Update customer details if provided
+    if (fullName) customer.fullName = fullName;
+    if (age) customer.age = age;
+    if (email) customer.email = email;
+
+    // Save the updated customer
+    const updatedCustomer = await customer.save();
+
+    // Return the updated customer
+    res.status(200).json(updatedCustomer);
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Endpoint to delete a customer
 export const deleteCustomer = async (req, res, next) => {
   try {
