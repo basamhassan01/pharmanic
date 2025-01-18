@@ -22,6 +22,11 @@ function InvoiceModal({ isOpen, onClose, onInvoiceCreated }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    // Calculate totalPrice dynamically when quantity or unitPrice changes
+    setTotalPrice(quantity * unitPrice);
+  }, [quantity, unitPrice]);
+
   const generateInvoiceId = () => {
     const randomNumber = Math.floor(100 + Math.random() * 900); // Generates a number between 100 and 999
     return `T${randomNumber}`;
@@ -243,6 +248,9 @@ function InvoiceModal({ isOpen, onClose, onInvoiceCreated }) {
               className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
             />
           </div>
+
+          {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
+
           <div className="flex justify-end">
             <button
               type="button"
