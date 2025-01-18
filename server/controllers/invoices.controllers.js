@@ -23,9 +23,9 @@ export const createInvoice = async (req, res, next) => {
     const {
       invoiceId,
       date,
+      phoneNumber,
       customerId,
       medication,
-      phoneNumber,
       quantity,
       unitPrice,
       totalPrice,
@@ -56,6 +56,7 @@ export const createInvoice = async (req, res, next) => {
       date,
       customerId,
       medication,
+      phoneNumber,
       quantity,
       unitPrice,
       totalPrice,
