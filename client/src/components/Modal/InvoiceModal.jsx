@@ -1,46 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import axios from "axios";
 
-function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
-  const [invoiceId, setInvoiceId] = useState('');
-  const [date, setDate] = useState('');
-  const [customerId, setCustomerId] = useState('');
-  const [medication, setMedication] = useState('');
-  const [quantity, setQuantity] = useState(0);
-  const [unitPrice, setUnitPrice] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0); 
-  const [approved, setApproved] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (invoiceToEdit) {
-      setIsEditing(true);
-      setInvoiceId(invoiceToEdit.invoiceId);
-      setDate(invoiceToEdit.date);
-      setCustomerId(invoiceToEdit.customerId);
-      setMedication(invoiceToEdit.medication);
-      setQuantity(invoiceToEdit.quantity);
-      setUnitPrice(invoiceToEdit.unitPrice);
-      setTotalPrice(invoiceToEdit.totalPrice); 
-      setApproved(invoiceToEdit.approved || false); 
-    } else {
-      setIsEditing(false);
-      setInvoiceId(generateInvoiceId());
-      setDate('');
-      setCustomerId('');
-      setMedication('');
-      setQuantity(0);
-      setUnitPrice(0);
-      setTotalPrice(0); 
-      setApproved(false);
-    }
-  }, [invoiceToEdit]);
+function InvoiceModal({ isOpen, onClose, onInvoiceCreated }) {
+  const [invoiceId, setInvoiceId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerId, setCustomerId] = useState(""); // Add customerId state
+  const [medication, setMedication] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [date, setDate] = useState("");
+  const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [medications, setMedications] = useState([]); // Add medications state
 
   useEffect(() => {
     if (isOpen) {
       setInvoiceId(generateInvoiceId());
+      fetchCustomers();
+      fetchMedications();
     }
   }, [isOpen]);
 
@@ -54,59 +32,124 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
     return `T${randomNumber}`;
   };
 
-  // Handle form submission (create or update)
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/api/customers");
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    }
+  };
+
+  const fetchMedications = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/api/medications");
+      setMedications(response.data);
+    } catch (error) {
+      console.error("Error fetching medications:", error);
+    }
+  };
+
+  const handlePhoneNumberChange = (e) => {
+    const value = e.target.value;
+    setPhoneNumber(value);
+    if (value) {
+      const filtered = customers.filter((customer) =>
+        customer.phoneNumber.includes(value)
+      );
+      setFilteredCustomers(filtered);
+      if (filtered.length === 0) {
+        setCustomerName(""); // Clear customer name if no match is found
+      }
+    } else {
+      setFilteredCustomers([]);
+      setCustomerName(""); // Clear customer name if input is empty
+    }
+  };
+
+  const handleCustomerSelect = (customer) => {
+    setPhoneNumber(customer.phoneNumber);
+    setCustomerName(customer.fullName);
+    setCustomerId(customer._id); // Set the customer ID
+    setFilteredCustomers([]);
+  };
+
+  const handleMedicationChange = (e) => {
+    const selectedMedicationName = e.target.value;
+    setMedication(selectedMedicationName);
+    const selectedMedication = medications.find(
+      (med) => med.name === selectedMedicationName
+    );
+    if (selectedMedication) {
+      setUnitPrice(selectedMedication.price);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const totalPrice = quantity * unitPrice; // Calculate total price
 
-    // Validate the form fields
-    if (!invoiceId || !date || !customerId || !medication || isNaN(quantity) || isNaN(unitPrice)) {
-      setErrorMessage('All fields are required.');
-      return;
+    let customerIdToUse = customerId;
+
+    // Check if the customer exists based on the phone number
+    if (!customerIdToUse) {
+      try {
+        const response = await axios.get(
+          `http://localhost:3001/api/customers?phoneNumber=${phoneNumber}`
+        );
+        const existingCustomer = response.data;
+
+        if (existingCustomer) {
+          customerIdToUse = existingCustomer._id;
+        } else {
+          // Create a new customer if not found
+          const newCustomerResponse = await axios.post(
+            "http://localhost:3001/api/customers",
+            {
+              fullName: customerName,
+              phoneNumber,
+            }
+          );
+          customerIdToUse = newCustomerResponse.data._id;
+        }
+      } catch (error) {
+        console.error("Error checking or creating customer:", error);
+        return;
+      }
     }
 
-    setIsLoading(true);
+    const invoiceData = {
+      invoiceId,
+      date,
+      customerId: customerIdToUse,
+      medication,
+      phoneNumber,
+      quantity,
+      unitPrice,
+      totalPrice,
+    };
+
+    console.log("Submitting invoice data:", invoiceData); // Log the invoice data
+
     try {
-      let response;
-      if (isEditing) {
-        // For Updating Existing Invoice
-        const response = await axios.put(`http://localhost:3001/api/invoices/${invoiceToEdit.invoiceId}`, {
-          invoiceId,
-          date,
-          customerId,
-          medication,
-          quantity,
-          unitPrice,
-          totalPrice, 
-          approved,
-        });
-
-        if (response.status === 200) {
-          onClose();
-          window.location.reload(); 
-        }
-      } else {
-        // For Creating New Invoices
-        const response = await axios.post('http://localhost:3001/api/invoices', {
-          invoiceId,
-          date,
-          customerId,
-          medication,
-          quantity,
-          unitPrice,
-          totalPrice, 
-          approved,
-        });
-
-        if (response.status === 201) {
-          onClose();
-          window.location.reload(); 
-        }
-      }
+      const response = await axios.post("http://localhost:3001/api/invoices", invoiceData);
+      // Reset form values
+      setInvoiceId("");
+      setPhoneNumber("");
+      setCustomerName("");
+      setCustomerId(""); // Reset customer ID
+      setMedication("");
+      setQuantity("");
+      setUnitPrice("");
+      setDate("");
+      onClose(); // Close the modal after submission
+      // Show success alert
+      alert("Invoice created successfully");
+      // Call the callback function to update the parent component
+      onInvoiceCreated(response.data);
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Error saving Invoice');
-    } finally {
-      setIsLoading(false);
-    }  
+      console.error("Error submitting invoice:", error);
+    }
   };
 
   if (!isOpen) return null;
@@ -114,60 +157,113 @@ function InvoiceModal({ isOpen, onClose, invoiceToEdit }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-5 rounded shadow-md w-1/3">
-        <h2 className="text-lg font-bold mb-4">{isEditing ? 'Edit Invoice' : 'New Invoice'}</h2>
+        <h2 className="text-lg font-bold mb-4">New Invoice</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block">Invoice ID</label>
             <input
               type="text"
+              name="invoiceId"
               value={invoiceId}
               readOnly
               className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
             />
           </div>
-          <div className="mb-4">
-            <label className="block">Date</label>
-            <input type="date" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={date} onChange={(e) => setDate(e.target.value)} disabled={isLoading} />
+          <div className="mb-4 relative">
+            <label className="block">Phone Number</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={phoneNumber}
+              onChange={handlePhoneNumberChange}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
+            {filteredCustomers.length > 0 && (
+              <ul className="absolute bg-white border border-gray-300 w-full mt-1 max-h-40 overflow-y-auto z-10">
+                {filteredCustomers.map((customer) => (
+                  <li
+                    key={customer._id}
+                    className="p-2 cursor-pointer hover:bg-gray-200"
+                    onClick={() => handleCustomerSelect(customer)}
+                  >
+                    {customer.phoneNumber}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="mb-4">
             <label className="block">Customer Name</label>
-            <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={customerId} onChange={(e) => setCustomerId(e.target.value)} disabled={isLoading} />
+            <input
+              type="text"
+              name="customerName"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <label className="block">Medication</label>
-            <input type="text" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={medication} onChange={(e) => setMedication(e.target.value)} disabled={isLoading} />
+            <select
+              name="medication"
+              value={medication}
+              onChange={handleMedicationChange}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            >
+              <option value="">Select Medication</option>
+              {medications.map((med) => (
+                <option key={med._id} value={med.name}>
+                  {med.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="mb-4">
             <label className="block">Quantity</label>
-            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={quantity} onChange={(e) => setQuantity(e.target.value)} disabled={isLoading} />
+            <input
+              type="number"
+              name="quantity"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
           </div>
           <div className="mb-4">
             <label className="block">Unit Price</label>
-            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} disabled={isLoading} />
+            <input
+              type="number"
+              name="unitPrice"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
           </div>
           <div className="mb-4">
-            <label className="block">Total Price</label>
-            <input type="number" className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3" value={totalPrice} readOnly disabled={isLoading} />
-          </div>
-          <div className="mb-4 flex justify-between">
-            <label className="block">Approved</label>
-            <input type="checkbox" checked={approved} onChange={() => setApproved(!approved)} disabled={isLoading} />
+            <label className="block">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="border border-[#0B81C7] border-opacity-20 rounded w-full py-2 px-3"
+            />
           </div>
 
           {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
 
           <div className="flex justify-end">
-            <button type="button" onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded mr-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+            >
               Cancel
             </button>
-            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded" disabled={isLoading}>
-            {isLoading ? (
-                <span>Saving...</span>
-              ) : isEditing ? (
-                'Update'
-              ) : (
-                'Save'
-              )}
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Save
             </button>
           </div>
         </form>
